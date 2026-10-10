@@ -1,17 +1,36 @@
 import * as THREE from 'three';
 
-export function createLights({ key, fill, rim }) {
-  const group = new THREE.Group();
+export class LightRig {
+  constructor(config) {
+    this.config = config;
+    this.group = new THREE.Group();
 
-  const keyLight = new THREE.DirectionalLight(key.color, key.intensity);
-  keyLight.position.set(-3, 4, 4); // haut-gauche, devant
+    this.key = this.#create(config.key);
+    this.fill = this.#create(config.fill);
+    this.rim = this.#create(config.rim);
 
-  const fillLight = new THREE.DirectionalLight(fill.color, fill.intensity);
-  fillLight.position.set(4, 1, 3); // droite, plus bas
+    this.group.add(this.key, this.fill, this.rim);
+  }
 
-  const rimLight = new THREE.DirectionalLight(rim.color, rim.intensity);
-  rimLight.position.set(0, 3, -4); // derrière
+  // pointer : position lissée du curseur, de -1 à 1 sur chaque axe
+  // rimMultiplier : facteur appliqué au contre-jour (effet de survol)
+  update(pointer, rimMultiplier = 1) {
+    const { key, rim, follow } = this.config;
 
-  group.add(keyLight, fillLight, rimLight);
-  return group;
+    const offsetX = follow.enabled ? pointer.x * follow.rangeX : 0;
+    const offsetY = follow.enabled ? pointer.y * follow.rangeY : 0;
+    this.key.position.set(
+        key.position[0] + offsetX,
+        key.position[1] + offsetY,
+        key.position[2],
+    );
+
+    this.rim.intensity = rim.intensity * rimMultiplier;
+  }
+
+  #create({ color, intensity, position }) {
+    const light = new THREE.DirectionalLight(color, intensity);
+    light.position.set(...position);
+    return light;
+  }
 }
