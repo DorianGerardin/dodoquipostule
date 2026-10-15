@@ -13,6 +13,7 @@ export class Motion {
   #tapStrength = 1;
   #tapSpeed = 1;
   #hover = 0;
+  #introProgress = 0;
 
   constructor(target, canvas, config) {
     this.target = target; // groupe racine
@@ -24,6 +25,11 @@ export class Motion {
   // 0 à 1 : intensité du survol (utilisée aussi pour le contre-jour)
   get hoverAmount() {
     return this.#hover;
+  }
+
+  // 0 à 1 : avancement de l'animation d'entrée (1 si elle est désactivée)
+  get introProgress() {
+    return this.#introProgress;
   }
 
   startIntro() {
@@ -41,8 +47,10 @@ export class Motion {
   }
 
   // pointer : position lissée du curseur (-1 à 1) ; hovered : le micro est survolé
-  update(dt, pointer, hovered) {
+  // audioLevel : énergie des basses de la musique, de 0 à 1 (0 si rien ne joue)
+  update(dt, pointer, hovered, audioLevel = 0) {
     const { intro, float, parallax, hover, tap } = this.config;
+    const reaction = this.config.audio?.reaction;
     this.#time += dt;
 
     // --- Animation d'entrée ---
@@ -54,6 +62,7 @@ export class Motion {
           : 0;
     }
     const eased = easeOutCubic(progress);
+    this.#introProgress = progress;
     const introOffset = intro.enabled ? -intro.distance * (1 - eased) : 0;
     this.#setOpacity(intro.enabled && intro.fade ? eased : 1);
 
@@ -68,7 +77,8 @@ export class Motion {
 
     // --- Survol ---
     this.#hover = damp(this.#hover, hover.enabled && hovered ? 1 : 0, hover.speed, dt);
-    const scale = 1 + (hover.scale - 1) * this.#hover;
+    const pulse = reaction ? 1 + reaction.scale * audioLevel : 1;
+    const scale = (1 + (hover.scale - 1) * this.#hover) * pulse;
 
     // --- Secousse au tap : oscillation amortie ---
     this.#tapTime += dt;
@@ -82,9 +92,14 @@ export class Motion {
           this.#tapDirection;
     }
 
+    // --- Réaction à la musique : tremblement dont l'amplitude suit le niveau sonore ---
+    const wobble = reaction
+        ? Math.sin(this.#time * Math.PI * 2 * reaction.shakeSpeed) * deg(reaction.shake) * audioLevel
+        : 0;
+
     // --- Application ---
     this.target.position.set(this.base.x, this.base.y + introOffset + bob, 0);
-    this.target.rotation.set(parallaxX + shake * 0.4, 0, parallaxZ + shake);
+    this.target.rotation.set(parallaxX + shake * 0.4 + wobble * 0.5, 0, parallaxZ + shake + wobble);
     this.target.scale.setScalar(scale);
   }
 

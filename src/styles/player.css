@@ -1,0 +1,67 @@
+/* Lecteur audio : positionné par JavaScript au-dessus du micro (transform inline) */
+.player {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 10;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+  will-change: transform;
+}
+
+.player.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.player__pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: var(--player-width);
+  height: var(--player-height);
+  padding: 0 16px 0 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--player-from), var(--player-to));
+  box-shadow: 0 8px 24px rgb(127 0 255 / 0.1);
+  transform: translateY(8px) scale(0.96);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.player.is-visible .player__pill {
+  transform: none;
+}
+
+.player__toggle {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.22);
+  color: #fff;
+  cursor: pointer;
+}
+
+.player__toggle:hover {
+  background: rgb(255 255 255 / 0.34);
+}
+
+.player__toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.player__wave {
+  flex: 1;
+  min-width: 0;
+  height: 70%;
+  cursor: pointer;
+  touch-action: pan-y;
+}

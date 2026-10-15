@@ -18,17 +18,22 @@ export class SpinController {
   #down = null;    // infos du dernier appui, pour distinguer tap et glissé
   #lastTap = null;
 
-  constructor(element, target, config, { startAngle = 0, onTap = null } = {}) {
+  constructor(element, target, config, { startAngle = 0, onTap = null, canStart = null } = {}) {
     this.element = element;
     this.target = target; // objet 3D dont on fait varier rotation.y
     this.config = config;
     this.startAngle = startAngle;
     this.onTap = onTap;
+    this.canStart = canStart; // (x, y) => bool : l'appui est-il sur le micro ?
 
     element.addEventListener('pointerdown', this.#onDown);
     element.addEventListener('pointermove', this.#onMove);
     element.addEventListener('pointerup', this.#onUp);
     element.addEventListener('pointercancel', this.#onUp);
+  }
+
+  get dragging() {
+    return this.#dragging;
   }
 
   // À appeler à chaque frame, avec dt en secondes.
@@ -85,6 +90,7 @@ export class SpinController {
 
   #onDown = (e) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return; // clic gauche seulement
+    if (this.canStart && !this.canStart(e.clientX, e.clientY)) return; // appui hors du micro : ignoré
 
     this.#dragging = true;
     this.#tween = null;
@@ -111,9 +117,9 @@ export class SpinController {
       this.#down.moved = true;
     }
 
-    // Sensibilité proportionnelle à la largeur : même geste = même rotation
-    // sur mobile et sur grand écran.
-    const angle = (dx / this.element.clientWidth) * deg(this.config.degreesPerWidth);
+    // Sensibilité proportionnelle à la largeur de l'écran (et non du canvas) :
+    // même geste = même rotation, quelle que soit la taille du viewer.
+    const angle = (dx / window.innerWidth) * deg(this.config.degreesPerWidth);
     this.target.rotation.y += angle;
 
     // Vitesse mesurée en rad/s (indépendante du framerate), légèrement lissée

@@ -1,11 +1,15 @@
+// Tous les réglages du viewer.
+// Durées en secondes, angles en degrés, distances en unités Three.js
+// (le micro fait `model.size` unités de haut).
+
 export const VIEWER_CONFIG = {
-  modelUrl: '/models/micro_v2.glb',
+  modelUrl: '/models/micro_v4.glb',
 
   model: {
     size: 2,            // hauteur normalisée du micro
-    tiltZ: 0,           // inclinaison par défaut (axe de profondeur)
+    tiltZ: -2,           // inclinaison par défaut (axe de profondeur)
     offsetX: 0,         // position du pivot (point jaune) dans la scène
-    offsetY: -1,
+    offsetY: -0.2,
     startRotationY: 0,  // angle de départ, et angle de retour au double-clic
   },
 
@@ -15,7 +19,7 @@ export const VIEWER_CONFIG = {
   lighting: {
     exposure: 1,
     envIntensity: 0.6,                                          // lumière douce du « studio »
-    key:  { color: 0xe6d4ff, intensity: 2.2, position: [-3, 4, 4] },  // principale
+    key:  { color: 0xe6d4ff, intensity: 5, position: [-3, 4, 4] },  // principale
     fill: { color: 0xdde8ff, intensity: 0.7, position: [4, 1, 3] },   // remplissage
     rim:  { color: 0xffffff, intensity: 2.0, position: [0, 3, -4] },  // contre-jour
     follow: {
@@ -25,11 +29,14 @@ export const VIEWER_CONFIG = {
     },
   },
 
-  // Lissage de la position du curseur (parallaxe + lumière). Plus haut = plus réactif.
-  pointer: { smoothing: 5 },
+  pointer: {
+    smoothing: 5,        // lissage du curseur (parallaxe + lumière). Plus haut = plus réactif
+    onlyOnModel: true,   // true : parallaxe et lumière réagissent seulement quand le curseur est sur le micro
+  },
 
   interaction: {
-    degreesPerWidth: 400,  // rotation pour un glissé sur toute la largeur du viewer
+    degreesPerWidth: 200,  // rotation pour un glissé sur toute la largeur de l'écran
+    hitPadding: 10,        // marge (px) autour du micro où un appui compte encore (utile au doigt)
     inertiaDamping: 3,     // freinage après le lâcher (par seconde). Plus haut = s'arrête plus vite
     idle: {
       enabled: false,       // rotation lente quand on n'interagit pas
@@ -52,14 +59,14 @@ export const VIEWER_CONFIG = {
 
   float: {
     enabled: true,
-    amplitude: 0.015,       // hauteur du flottement
-    speed: 0.3,            // cycles par seconde
+    amplitude: 0.03,       // hauteur du flottement
+    speed: 0.5,            // cycles par seconde
   },
 
   parallax: {
     enabled: true,
-    tiltX: 2,              // inclinaison max avant/arrière (suit la hauteur du curseur)
-    tiltZ: 3,              // inclinaison max gauche/droite (suit la position horizontale)
+    tiltX: 3,              // inclinaison max avant/arrière (suit la hauteur du curseur)
+    tiltZ: 4,              // inclinaison max gauche/droite (suit la position horizontale)
   },
 
   hover: {
@@ -72,17 +79,49 @@ export const VIEWER_CONFIG = {
 
   tap: {
     enabled: true,
-    variation: 0.5,       // secousse : 0 = toujours identique, 1 = très variable
-    amplitude: 3,          // secousse max (degrés)
-    frequency: 5,          // oscillations par seconde
+    amplitude: 4,          // secousse max (degrés)
+    frequency: 6,          // oscillations par seconde
     decay: 7,              // amortissement (plus haut = s'arrête plus vite)
     duration: 0.8,
+    variation: 0.25,       // 0 = secousse toujours identique, 1 = très variable (force, vitesse, sens)
     sound: {
       enabled: true,
-      variation: 0.25,     // son : 0 = toujours identique, 1 = très variable
       volume: 0.25,
-      pitch: 1,
+      variation: 0.25,     // 0 = son toujours identique, 1 = très variable (hauteur, volume, timbre)
+      pitch: 1,            // 1 = normal ; plus bas = plus grave, plus haut = plus aigu (son synthétisé)
       url: null,           // ex : '/sounds/tap.mp3' ; sinon un son synthétisé est généré
+    },
+  },
+  logo: {
+    enabled: true,
+    url: '/src/img/dodo_qui_assiste.webp',   // chemin de ton image, dans public/
+    alt: 'Dodo qui assiste',
+    width: 'clamp(120px, 30vmin, 360px)',   // largeur maximale (CSS) : s'adapte à l'écran
+    mobileWidth: '100vw',                    // largeur maximale sur mobile (écran de 640 px ou moins)
+    gap: 32,                                // px entre le logo et le sommet du micro
+    appearAt: 0.3,                          // apparaît quand l'entrée du micro est à 70 %
+  },
+  audio: {
+    enabled: true,
+    url: '/audio/dodoquipostule.mp3',   // ton fichier, dans public/audio/
+    volume: 0.8,
+    loop: false,
+    player: {
+      from: '#8520bc',       // dégradé du lecteur, de gauche à droite
+      to: '#fa0483',
+      bars: '#ffffff',       // couleur des barres et du curseur de lecture
+      width: 320,            // px
+      height: 56,
+      barCount: 36,          // nombre de barres de la forme d'onde
+      gap: 12,               // px entre le lecteur et le sommet du micro
+    },
+    reaction: {              // le micro réagit aux basses de la musique
+      sensitivity: 1,      // plus haut = réagit plus fort
+      attack: 30,            // rapidité de montée
+      release: 6,            // rapidité de retombée
+      scale: 0.15,           // pulsation maximale (0,04 = 4 %)
+      shake: 2.5,            // tremblement maximal, en degrés
+      shakeSpeed: 0.5,         // secousses par seconde
     },
   },
 };

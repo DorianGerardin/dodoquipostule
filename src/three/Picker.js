@@ -24,9 +24,22 @@ export class Picker {
   }
 
   // Test immédiat : le point écran (clientX, clientY) touche-t-il le modèle ?
-  hit(clientX, clientY) {
+  // `padding` (px) élargit la zone : on teste aussi 4 points autour (utile au doigt).
+  hit(clientX, clientY, padding = 0) {
     if (!this.object) return false;
 
+    if (this.#hitAt(clientX, clientY)) return true;
+    if (padding <= 0) return false;
+
+    return (
+        this.#hitAt(clientX + padding, clientY) ||
+        this.#hitAt(clientX - padding, clientY) ||
+        this.#hitAt(clientX, clientY + padding) ||
+        this.#hitAt(clientX, clientY - padding)
+    );
+  }
+
+  #hitAt(clientX, clientY) {
     const rect = this.canvas.getBoundingClientRect();
     this.#ndc.set(
         ((clientX - rect.left) / rect.width) * 2 - 1,

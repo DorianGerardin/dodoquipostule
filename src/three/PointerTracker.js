@@ -12,9 +12,12 @@ export class PointerTracker {
     document.documentElement.addEventListener('pointerleave', this.#onLeave);
   }
 
-  update(dt) {
-    this.value.x = damp(this.value.x, this.target.x, this.smoothing, dt);
-    this.value.y = damp(this.value.y, this.target.y, this.smoothing, dt);
+  // active = false : le curseur est ignoré et les effets reviennent doucement au neutre
+  update(dt, active = true) {
+    const x = active ? this.target.x : 0;
+    const y = active ? this.target.y : 0;
+    this.value.x = damp(this.value.x, x, this.smoothing, dt);
+    this.value.y = damp(this.value.y, y, this.smoothing, dt);
   }
 
   dispose() {
