@@ -1,4 +1,5 @@
 import { clamp01, damp } from './math.js';
+import { BeatFollower } from './BeatFollower.js';
 
 const FFT_SIZE = 512;
 const BASS_BINS = 4; // environ 0 à 375 Hz : grosse caisse et basses
@@ -40,6 +41,7 @@ export class AudioPlayer {
   #bins = null;
   #ready = null;
   #url = null;
+  #beat = new BeatFollower();
 
   constructor(config) {
     this.config = config;
@@ -106,15 +108,21 @@ export class AudioPlayer {
 
   // À appeler à chaque frame : mesure l'énergie des basses.
   update(dt) {
-    const { sensitivity, attack, release } = this.config.reaction;
+    const { sensitivity, attack, release, relative = true } = this.config.reaction;
+    const playing = this.playing && !!this.#analyser;
 
-    let target = 0;
-    if (this.playing && this.#analyser) {
+    let raw = 0;
+    if (playing) {
       this.#analyser.getByteFrequencyData(this.#bins);
       let sum = 0;
       for (let i = 0; i < BASS_BINS; i++) sum += this.#bins[i];
-      target = clamp01((sum / BASS_BINS / 255) * sensitivity);
+      raw = clamp01(sum / BASS_BINS / 255);
     }
+
+    // relative : 0 entre les coups, 1 sur un gros coup, donc le micro reste à sa taille
+    // normale entre les coups. Sinon, il suit le niveau global des basses.
+    const measure = relative ? this.#beat.update(raw, dt, playing) : raw;
+    const target = clamp01(measure * sensitivity);
 
     // Montée rapide, retombée plus lente : le micro « tape » sur les coups
     this.level = damp(this.level, target, target > this.level ? attack : release, dt);

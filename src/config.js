@@ -2,8 +2,10 @@
 // Durées en secondes, angles en degrés, distances en unités Three.js
 // (le micro fait `model.size` unités de haut).
 
+const asset = (path) => `${import.meta.env.BASE_URL}${path}`;
+
 export const VIEWER_CONFIG = {
-  modelUrl: '/models/micro_v4.glb',
+  modelUrl: asset('models/micro_v4.glb'),
 
   model: {
     size: 2,            // hauteur normalisée du micro
@@ -31,7 +33,7 @@ export const VIEWER_CONFIG = {
 
   pointer: {
     smoothing: 5,        // lissage du curseur (parallaxe + lumière). Plus haut = plus réactif
-    onlyOnModel: true,   // true : parallaxe et lumière réagissent seulement quand le curseur est sur le micro
+    onlyOnModel: false,   // true : parallaxe et lumière réagissent seulement quand le curseur est sur le micro
   },
 
   interaction: {
@@ -94,7 +96,7 @@ export const VIEWER_CONFIG = {
   },
   logo: {
     enabled: true,
-    url: '/src/img/dodo_qui_assiste.webp',   // chemin de ton image, dans public/
+    url: asset('src/img/dodo_qui_assiste.webp'),   // chemin de ton image, dans public/
     alt: 'Dodo qui assiste',
     width: 'clamp(120px, 30vmin, 360px)',   // largeur maximale (CSS) : s'adapte à l'écran
     mobileWidth: '100vw',                    // largeur maximale sur mobile (écran de 640 px ou moins)
@@ -103,7 +105,8 @@ export const VIEWER_CONFIG = {
   },
   audio: {
     enabled: true,
-    url: '/audio/dodoquipostule.mp3',   // ton fichier, dans public/audio/
+    relative: true,               // false : suit le niveau global des basses (ancien comportement)
+    url: asset('audio/dodoquipostule.mp3'),   // ton fichier, dans public/audio/
     volume: 0.8,
     loop: false,
     player: {
@@ -112,7 +115,7 @@ export const VIEWER_CONFIG = {
       bars: '#ffffff',       // couleur des barres et du curseur de lecture
       width: 320,            // px
       height: 56,
-      barCount: 36,          // nombre de barres de la forme d'onde
+      barCount: 32,          // nombre de barres de la forme d'onde
       gap: 12,               // px entre le lecteur et le sommet du micro
     },
     reaction: {              // le micro réagit aux basses de la musique
@@ -120,7 +123,7 @@ export const VIEWER_CONFIG = {
       attack: 30,            // rapidité de montée
       release: 6,            // rapidité de retombée
       scale: 0.15,           // pulsation maximale (0,04 = 4 %)
-      shake: 2.5,            // tremblement maximal, en degrés
+      shake: 1.25,            // tremblement maximal, en degrés
       shakeSpeed: 0.5,         // secousses par seconde
     },
   },

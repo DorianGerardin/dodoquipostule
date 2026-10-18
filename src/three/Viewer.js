@@ -125,7 +125,11 @@ export class Viewer {
   #toggleAudio() {
     if (!this.audio) return;
     if (this.audio.active) this.audio.stop();
-    else this.audio.start().catch(console.error);
+    else
+    {
+      this.spin.returnToStart();
+      this.audio.start().catch(console.error);
+    }
   }
 
   // Position écran (px) du sommet du micro : le logo et le lecteur s'y accrochent
