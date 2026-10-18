@@ -96,7 +96,7 @@ export const VIEWER_CONFIG = {
   },
   logo: {
     enabled: true,
-    url: asset('src/img/dodo_qui_assiste.webp'),   // chemin de ton image, dans public/
+    url: asset('img/dodo_qui_assiste.webp'),   // chemin de ton image, dans public/
     alt: 'Dodo qui assiste',
     width: 'clamp(120px, 30vmin, 360px)',   // largeur maximale (CSS) : s'adapte à l'écran
     mobileWidth: '100vw',                    // largeur maximale sur mobile (écran de 640 px ou moins)
