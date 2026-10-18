@@ -47,11 +47,10 @@
 }
 
 .hint__text {
-  font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive;
-  font-weight: 700;
+  font-family: "Schoolbell", cursive;
+  font-weight: 400;
   font-size: 1.25em;
   line-height: 1;
-  text-transform: uppercase;
   white-space: pre-line; /* un retour à la ligne par \n dans le texte de la config */
   text-align: left;
   position: relative;
