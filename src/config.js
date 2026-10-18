@@ -106,7 +106,7 @@ export const VIEWER_CONFIG = {
   audio: {
     enabled: true,
     relative: true,               // false : suit le niveau global des basses (ancien comportement)
-    url: asset('audio/dodoquipostule.mp3'),   // ton fichier, dans public/audio/
+    url: asset('audio/dodoquipostule_2.mp3'),   // ton fichier, dans public/audio/
     volume: 0.8,
     loop: false,
     player: {
@@ -126,5 +126,15 @@ export const VIEWER_CONFIG = {
       shake: 1.25,            // tremblement maximal, en degrés
       shakeSpeed: 0.5,         // secousses par seconde
     },
+  },
+  hint: {
+    enabled: true,
+    text: 'Clique\nsur le\nmicro',                // un retour à la ligne par \n ; '' pour la flèche seule
+    color: '#8822bd',
+    delay: 0.1,                                    // secondes d'attente après l'entrée du micro
+    distance: 0.05,                               // éloignement du micro (unités de la scène)
+    heightRatio: 0.5,                            // hauteur du bout de la flèche : 0 = cou, 1 = sommet du micro
+    size: 'clamp(14px, 3.2vmin, 24px)',          // taille (CSS) : la flèche et le texte grandissent ensemble
+    mobileSize: 'clamp(12px, 3.4vw, 16px)',      // taille sur mobile (écran de 640 px ou moins)
   },
 };

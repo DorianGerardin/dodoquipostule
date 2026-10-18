@@ -10,14 +10,17 @@ import { TapSound } from './TapSound.js';
 import { AudioPlayer } from './AudioPlayer.js';
 import { PlayerUI } from '../ui/PlayerUI.js';
 import { LogoUI } from '../ui/LogoUI.js';
+import { HintUI } from '../ui/HintUI.js';
 import { deg } from './math.js';
 
 export class Viewer {
   audio = null;
   playerUI = null;
   logoUI = null;
+  hintUI = null;
   #lastTime = null;
   #modelTop = 0;                    // hauteur du sommet du micro, par rapport à son pivot
+  #modelRadius = 0;                 // demi-largeur maximale du micro, autour de son pivot
   #anchor = new THREE.Vector3();
 
   constructor(container, config) {
@@ -71,6 +74,11 @@ export class Viewer {
       this.logoUI = new LogoUI(container.parentElement, config.logo);
     }
 
+    // Indice « Clique sur le micro » : flèche + texte à côté du micro
+    if (config.hint?.enabled) {
+      this.hintUI = new HintUI(container.parentElement, config.hint);
+    }
+
     this.resizeObserver = new ResizeObserver(() => this.#onResize());
     this.resizeObserver.observe(container);
     this.resizeObserver.observe(container.parentElement);
@@ -80,7 +88,9 @@ export class Viewer {
   async init() {
     try {
       const model = await loadModel(this.config.modelUrl, this.config.model.size);
-      this.#modelTop = new THREE.Box3().setFromObject(model).max.y; // avant l'ajout à la scène
+      const box = new THREE.Box3().setFromObject(model); // avant l'ajout à la scène
+      this.#modelTop = box.max.y;
+      this.#modelRadius = Math.max(-box.min.x, box.max.x, -box.min.z, box.max.z);
       this.tiltGroup.add(model);
       this.picker.setObject(model);
       this.motion.startIntro();
@@ -106,6 +116,7 @@ export class Viewer {
     this.audio?.dispose();
     this.playerUI?.dispose();
     this.logoUI?.dispose();
+    this.hintUI?.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }
@@ -114,6 +125,7 @@ export class Viewer {
 
   // Un tap n'est détecté que si l'appui a commencé sur le micro (voir canStart)
   #onTap() {
+    this.hintUI?.dismiss(); // l'indice a rempli son rôle dès le premier clic
     if (this.config.tap.enabled) {
       this.motion.tap();
       this.tapSound.play().catch(() => {});
@@ -125,9 +137,8 @@ export class Viewer {
   #toggleAudio() {
     if (!this.audio) return;
     if (this.audio.active) this.audio.stop();
-    else
-    {
-      this.spin.returnToStart();
+    else {
+      this.spin.returnToStart()
       this.audio.start().catch(console.error);
     }
   }
@@ -135,11 +146,29 @@ export class Viewer {
   // Position écran (px) du sommet du micro : le logo et le lecteur s'y accrochent
   #headAnchor() {
     const { position, scale } = this.rootGroup;
-    this.#anchor.set(position.x, position.y + this.#modelTop * scale.y, 0).project(this.camera);
+    this.#anchor.set(position.x, position.y + this.#modelTop * scale.y, 0);
+    return this.#toScreen(this.#anchor);
+  }
+
+  // Position écran (px) du bout de la flèche : à droite du micro, hors de portée de ses poils
+  #hintAnchor() {
+    const { position, scale } = this.rootGroup;
+    const { distance = 0.1, heightRatio = 0.5 } = this.config.hint;
+    this.#anchor.set(
+        position.x + this.#modelRadius * scale.x + distance,
+        position.y + this.#modelTop * heightRatio * scale.y,
+        0,
+    );
+    return this.#toScreen(this.#anchor);
+  }
+
+  // Point de la scène (unités) vers position écran (px)
+  #toScreen(point) {
+    point.project(this.camera);
     const rect = this.renderer.domElement.getBoundingClientRect();
     return {
-      x: rect.left + (this.#anchor.x * 0.5 + 0.5) * rect.width,
-      y: rect.top + (1 - (this.#anchor.y * 0.5 + 0.5)) * rect.height,
+      x: rect.left + (point.x * 0.5 + 0.5) * rect.width,
+      y: rect.top + (1 - (point.y * 0.5 + 0.5)) * rect.height,
     };
   }
 
@@ -211,6 +240,7 @@ export class Viewer {
     const player = this.config.audio?.player;
     const shift = this.audio?.active && player ? player.height + player.gap : 0;
     this.logoUI?.update(anchor, dt, this.motion.introProgress, shift);
+    this.hintUI?.update(this.hintUI ? this.#hintAnchor() : null, this.motion.introProgress);
 
     const rimMultiplier = 1 + hover.rimBoost * this.motion.hoverAmount;
     this.lights.update(this.pointer.value, rimMultiplier);

@@ -1,0 +1,132 @@
+/* Indice « Clique sur le micro » : positionné par JavaScript (transform inline) */
+.hint {
+  --hint-color: #8520bc;
+  --hint-size: clamp(14px, 3.2vmin, 24px);
+  --hint-size-mobile: clamp(12px, 3.4vw, 16px);
+  --hint-delay: 1s;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 6;
+  pointer-events: none; /* ne gêne pas les clics sur le micro */
+  will-change: transform;
+  font-size: var(--hint-size); /* la flèche et le texte grandissent ensemble (unités em) */
+  color: var(--hint-color);
+}
+
+@media (max-width: 640px) {
+  .hint {
+    font-size: var(--hint-size-mobile);
+  }
+}
+
+.hint__inner {
+  display: flex;
+  align-items: flex-start; /* les décalages verticaux de la flèche et du texte sont calculés en JavaScript */
+  gap: 0.3em;
+  opacity: 0;
+  transform: scale(0.5);
+  transform-origin: var(--hint-origin, 0 100%); /* il grandit à partir de la pointe de la flèche */
+}
+
+.hint__arrow {
+  flex: none;
+  width: 4.4em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hint__arrow svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.hint__text {
+  font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive;
+  font-weight: 700;
+  font-size: 1.25em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: pre-line; /* un retour à la ligne par \n dans le texte de la config */
+  text-align: left;
+  position: relative;
+  top: var(--hint-text-nudge, 0em); /* réglage fin de la hauteur du texte, par exemple -0.05em */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Apparition avec un petit rebond, puis la flèche « pointe » le micro en continu */
+.hint.is-in .hint__inner {
+  animation: hint-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) var(--hint-delay) forwards;
+}
+
+.hint.is-in .hint__arrow {
+  animation: hint-nudge 1.4s ease-in-out calc(var(--hint-delay) + 0.6s) infinite;
+}
+
+@keyframes hint-in {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hint-nudge {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-0.18em, 0.18em);
+  }
+}
+
+/* Disparition au premier clic sur le micro */
+.hint.is-gone .hint__inner {
+  animation: hint-out 0.3s ease forwards;
+}
+
+.hint.is-gone .hint__arrow {
+  animation: none;
+}
+
+@keyframes hint-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* Moins d'animations : simple fondu, sans mouvement continu */
+@media (prefers-reduced-motion: reduce) {
+  .hint.is-in .hint__inner {
+    animation: hint-fade 0.4s ease var(--hint-delay) forwards;
+  }
+
+  .hint.is-in .hint__arrow {
+    animation: none;
+  }
+
+  @keyframes hint-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
